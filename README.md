@@ -1,6 +1,24 @@
 # Chopper - Personal AI Companion & Care Assistant 🦌🌸
 
+[![Download APK](https://img.shields.io/badge/Download-Chopper%20APK%20(v1.0.0)-FF69B4?style=for-the-badge&logo=android&logoColor=white)](https://github.com/RONIKLIMBU/chopper-android-app/releases/download/v1.0.0/Chopper-v1.0.0.apk)
+[![Release](https://img.shields.io/badge/GitHub-Release%20v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/RONIKLIMBU/chopper-android-app/releases/tag/v1.0.0)
+
 **Chopper** is an Android application built with Kotlin and Jetpack Compose, designed to act as your caring personal doctor, schedule assistant, and daily companion.
+
+---
+
+## 📲 Direct App Download
+
+You can download the pre-compiled Android APK directly to your phone:
+
+- 🚀 **[Direct Download Chopper-v1.0.0.apk](https://github.com/RONIKLIMBU/chopper-android-app/releases/download/v1.0.0/Chopper-v1.0.0.apk)** *(22.5 MB)*
+- 📦 **[View GitHub Release v1.0.0 Assets](https://github.com/RONIKLIMBU/chopper-android-app/releases/tag/v1.0.0)**
+
+### How to Install on Android:
+1. Tap the **[Direct Download](https://github.com/RONIKLIMBU/chopper-android-app/releases/download/v1.0.0/Chopper-v1.0.0.apk)** link above on your Android phone.
+2. When prompted, select **Download anyway**.
+3. Open your phone's notification or Downloads folder, tap `Chopper-v1.0.0.apk`, and select **Install** (allow *Install unknown apps* for your browser if prompted).
+4. Launch Chopper and enjoy your personal AI care companion!
 
 ---
 
