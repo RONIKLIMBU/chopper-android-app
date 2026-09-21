@@ -1,0 +1,6 @@
+{
+  "name": "Chopper",
+  "description": "Personal caring AI companion and schedule assistant with caring anime voice, daily check-ins, two-stage reminders, and message triage.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
