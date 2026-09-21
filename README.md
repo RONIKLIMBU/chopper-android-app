@@ -1,9 +1,9 @@
-# Chopper - Personal AI Companion & Care Assistant 🦌🌸
+# Chopper - Tony Tony Chopper Reminder App 🦌🌸💊
 
 [![Download APK](https://img.shields.io/badge/Download-Chopper%20APK%20(v1.0.0)-FF69B4?style=for-the-badge&logo=android&logoColor=white)](https://github.com/RONIKLIMBU/chopper-android-app/releases/download/v1.0.0/Chopper-v1.0.0.apk)
 [![Release](https://img.shields.io/badge/GitHub-Release%20v1.0.0-blue?style=for-the-badge&logo=github)](https://github.com/RONIKLIMBU/chopper-android-app/releases/tag/v1.0.0)
 
-**Chopper** is an Android application built with Kotlin and Jetpack Compose, designed to act as your caring personal doctor, schedule assistant, and daily companion.
+**Chopper** is an Android application built with Kotlin and Jetpack Compose, designed as a dedicated, fully functional **Tony Tony Chopper Reminder App** with authentic anime personality, custom GitHub voice streaming, dynamic emotional reactions, and two-stage schedule alerts.
 
 ---
 
@@ -18,91 +18,45 @@ You can download the pre-compiled Android APK directly to your phone:
 1. Tap the **[Direct Download](https://github.com/RONIKLIMBU/chopper-android-app/releases/download/v1.0.0/Chopper-v1.0.0.apk)** link above on your Android phone.
 2. When prompted, select **Download anyway**.
 3. Open your phone's notification or Downloads folder, tap `Chopper-v1.0.0.apk`, and select **Install** (allow *Install unknown apps* for your browser if prompted).
-4. Launch Chopper and enjoy your personal AI care companion!
+4. Launch Chopper and enjoy your personal AI doctor companion!
 
 ---
 
 ## ✨ Key Features
 
-- **🌸 Chopper Voice Profile**:
-  - Integrated with Android TextToSpeech engine and custom anime voice configuration (`voiceId = "e5e3a1d83d6f491db3c26b3929052b34"`).
-  - High-pitched, cheerful cadence (1.35x pitch, 1.05x speech rate) addressing you as "Boss".
-  - One-tap instant voice test chip and understanding confirmation dialogue.
+- **🎙️ GitHub Custom Voice Asset Integration**:
+  - Connect your own GitHub repository containing Chopper's voice clips (e.g. `chuckle.mp3`, `angry.mp3`, `hiding.mp3`, `panic.mp3`, `candy.mp3`, `medicine.mp3`, `water.mp3`, `sleep.mp3`).
+  - Seamlessly streams remote raw audio files using Android's asynchronous `MediaPlayer`.
+  - Built-in `ChopperVoiceSettingsDialog` allows entering any repository URL with one-tap clip preview and testing.
+  - Graceful fallback to high-pitched anime-tuned Android `TextToSpeech` when offline or before a custom repo is linked.
 
-- **⏰ Permanent Daily Check-Ins & Health Routines**:
-  - **☀️ 7:00 AM Morning Briefing**: Wake-up greeting, schedule preview, and glass of water reminder.
-  - **🍱 2:00 PM Lunch Reminder**: Stepping away from work to eat well.
-  - **🌙 11:00 PM Goodnight Greetings**: Bedtime wrap-up and rest prescription.
-  - **💧 Drinking Water Check-ins**: Scheduled hydration notifications (10:30 AM & 3:30 PM).
-  - **🩺 Doctor Chopper "Take Care" Alerts**: Routine posture and stretch reminders (4:45 PM).
+- **🦌 Authentic Chopper Reactions & Expressions**:
+  - **🌸 Flustered Chuckling Dance**: Triggered when tasks are completed or when complimented ("*Kono yarō! Calling me a genius doctor won't make me happy, you jerk! Ehehehe~*").
+  - **💢 Angry Doctor Scolding**: Triggered when reminders become overdue or when tapped ("*BAKA! Did you take your medicine?! Don't you dare collapse!*").
+  - **🙈 Peek-a-boo Reverse Hiding**: Hides with his body exposed backwards from behind the screen!
+  - **😱 Doctor Panic Mode**: Hilarious panic ("*DOCTOR! SOMEBODY CALL A DOCTOR!! ...Wait, I'M THE DOCTOR!!*").
+  - **🍭 Cotton Candy Delight**: Pure bliss when sweet rewards or breaks are scheduled.
 
-- **🔔 Two-Stage Smart Reminders**:
-  - Stage 1: Alerts 24 hours prior to deadline or event.
-  - Stage 2: Timely alerts on the day of the event.
+- **⚡ 1-Tap Doctor Chopper Presets**:
+  - 💊 **Take Medicine** (+30 min)
+  - 💧 **Hydration Water** (+45 min)
+  - 🩺 **Doctor Rest Break** (+25 min)
+  - 🍭 **Cotton Candy Snack** (+15 min)
+  - 🌙 **Bedtime Rest** (+2 hours)
 
-- **📥 Triage Inbox & Assistant**:
-  - Categorizes incoming messages into Urgents, Inquiries, Follow-ups, and Receipts.
-  - High-priority notifications and quick action drafts.
+- **🔔 Fully Functional Two-Stage Reminder Engine**:
+  - **Stage 1 (Day-Before Alert)**: 24-hour advance heads-up with gentle notification.
+  - **Stage 2 (Day-Of Alert)**: Precise alarm when the event or medication time arrives.
+  - **Snooze Support**: One-tap quick snooze (+15m, +1h).
+  - **Reschedule & Custom Edit**: Instant time adjusters with Room database synchronization.
+  - **Overdue Detection**: Highlights overdue tasks and prompts Chopper's scolding voice alert.
+  - **Filter Tabs**: Toggle easily between Active, Completed, and All reminders.
 
-- **🎙️ Hands-Free & Wake Word**:
-  - Speech recognizer listening for "Chopper", "Hey Chopper", or "Doctor Chopper".
+- **🎙️ Voice Commands**:
+  - Speak hands-free to add reminders: *"Remind me to drink water in 30 minutes"* or *"Schedule doctor checkup tomorrow at 2 PM"*.
 
-- **💾 Offline-First Persistence**:
-  - Powered by Room Database (`ChopperDatabase`) for instant offline availability.
-
----
-
-## 🚀 How to Push this App to GitHub
-
-You can export and push this repository to GitHub through two simple methods:
-
-### Method 1: Using AI Studio Direct Export (Recommended)
-1. In the Google AI Studio top-right toolbar or project settings menu, click **Export** (or **GitHub**).
-2. Choose **Push to GitHub** to link your repository and push the entire codebase directly.
-3. Alternatively, click **Export as ZIP** to download the complete Android Studio project to your local computer.
-
-### Method 2: Push via Git Command Line
-
-If you have downloaded or cloned the project files locally:
-
-```bash
-# Initialize git (if not already initialized)
-git init
-git checkout -b main
-
-# Add all files and commit
-git add .
-git commit -m "Initial commit: Chopper Personal AI Companion Android App"
-
-# Create a new repository on https://github.com/new
-# Link your remote repository (replace with your repo URL):
-git remote add origin https://github.com/<your-username>/chopper-companion-app.git
-
-# Push to GitHub
-git push -u origin main
-```
-
----
-
-## 🛠️ Building & Installing the APK
-
-### Build with Gradle
-From the project root:
-
-```bash
-# Build the Debug APK
-./gradlew assembleDebug
-```
-
-The compiled APK will be available at:
-```
-app/build/outputs/apk/debug/app-debug.apk
-```
-
-### Install onto your Device or Emulator:
-```bash
-adb install -r app/build/outputs/apk/debug/app-debug.apk
-```
+- **💾 Room Database Persistence**:
+  - Built on Room SQLite (`ReminderEntity` & `ReminderDao`) for persistent offline storage.
 
 ---
 
@@ -111,6 +65,7 @@ adb install -r app/build/outputs/apk/debug/app-debug.apk
 - **Language**: Kotlin 2.0+
 - **UI Toolkit**: Jetpack Compose with Material 3 Design
 - **Architecture**: MVVM with unidirectional data flow (StateFlow)
-- **Database**: Room Database with Coroutines Flow
-- **Audio & Speech**: Android TextToSpeech (`ChopperVoiceManager`) & Android SpeechRecognizer
-- **Alarms & Background Alerts**: AlarmManager with BroadcastReceiver (`ChopperAlarmReceiver`) & NotificationManagerCompat
+- **Database**: Room Database with Coroutines Flow (`ChopperDatabase`)
+- **Audio & Speech**: Android `MediaPlayer` (remote GitHub streaming) + `TextToSpeech` + `SpeechRecognizer`
+- **Alarms & Background Alerts**: Android `AlarmManager` + `ChopperAlarmReceiver` + `NotificationManagerCompat`
+

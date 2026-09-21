@@ -10,39 +10,29 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.consumeWindowInsets
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.isImeVisible
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CalendarMonth
-import androidx.compose.material.icons.filled.ChatBubble
-import androidx.compose.material.icons.filled.Inbox
-import androidx.compose.material3.Badge
-import androidx.compose.material3.BadgedBox
-import androidx.compose.material3.Icon
-import androidx.compose.material3.NavigationBar
-import androidx.compose.material3.NavigationBarItem
-import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.ui.ChopperViewModel
-import com.example.ui.components.ChopperChatView
-import com.example.ui.components.ChopperHeader
+import com.example.ui.components.ChopperCharacterHeroCard
 import com.example.ui.components.ChopperRemindersView
-import com.example.ui.components.ChopperTriageView
 import com.example.ui.components.ChopperVoiceCommandDialog
-import com.example.ui.theme.ChopperDoctorBlue
-import com.example.ui.theme.ChopperPink
+import com.example.ui.components.ChopperVoiceSettingsDialog
 import com.example.ui.theme.MyApplicationTheme
 
 class MainActivity : ComponentActivity() {
@@ -60,25 +50,17 @@ class MainActivity : ComponentActivity() {
     }
 }
 
-@OptIn(androidx.compose.foundation.layout.ExperimentalLayoutApi::class)
 @Composable
 fun ChopperApp(viewModel: ChopperViewModel) {
-    val activeTab by viewModel.activeTab.collectAsState()
     val statusText by viewModel.chopperStatusText.collectAsState()
-    val isThinkingMode by viewModel.isThinkingModeEnabled.collectAsState()
     val isVoiceMuted by viewModel.voiceManager.isVoiceMuted.collectAsState()
     val isSpeaking by viewModel.voiceManager.isSpeaking.collectAsState()
-    val isGenerating by viewModel.isGenerating.collectAsState()
-    val isHandsFreeListening by viewModel.isHandsFreeWakeWordActive.collectAsState()
+    val currentReaction by viewModel.currentReaction.collectAsState()
+    val githubVoiceRepoUrl by viewModel.githubVoiceRepoUrl.collectAsState()
     val voiceCommandState by viewModel.voiceCommandUiState.collectAsState()
-    val voiceId by viewModel.currentVoiceId.collectAsState()
-
-    val chatMessages by viewModel.chatMessages.collectAsState()
     val reminders by viewModel.reminders.collectAsState()
-    val notifications by viewModel.notifications.collectAsState()
 
-    val unhandledNotifsCount = notifications.count { it.status == "UNHANDLED" }
-    val activeRemindersCount = reminders.count { it.status == "ACTIVE" }
+    var showVoiceSettingsDialog by remember { mutableStateOf(false) }
 
     // Request permissions for Speech Recognition (RECORD_AUDIO) and Scheduled Alerts (POST_NOTIFICATIONS)
     val permissionsLauncher = rememberLauncherForActivityResult(
@@ -96,116 +78,53 @@ fun ChopperApp(viewModel: ChopperViewModel) {
     Scaffold(
         modifier = Modifier
             .fillMaxSize()
-            .testTag("chopper_main_screen"),
-        topBar = {
-            ChopperHeader(
-                statusText = statusText,
-                isThinkingMode = isThinkingMode,
-                isVoiceMuted = isVoiceMuted,
-                isSpeaking = isSpeaking,
-                isHandsFreeListening = isHandsFreeListening,
-                voiceId = voiceId,
-                onToggleThinkingMode = { viewModel.toggleThinkingMode() },
-                onToggleVoiceMute = { viewModel.voiceManager.toggleMute() },
-                onToggleHandsFreeWakeWord = { viewModel.toggleHandsFreeWakeWord() },
-                onTriggerWakeWord = { viewModel.triggerWakeWord() },
-                onTriggerMorningRoutine = { viewModel.triggerMorningRoutine() },
-                onTriggerLunchRoutine = { viewModel.triggerLunchRoutine() },
-                onTriggerNightRoutine = { viewModel.triggerNightRoutine() },
-                onTriggerWaterReminder = { viewModel.triggerDrinkingWaterCheck() },
-                onTriggerCareNotification = { viewModel.triggerTakeCareCheck() },
-                onTestVoice = { viewModel.testVoiceModel() },
-                onStartVoiceCommand = { viewModel.startVoiceCommandFlow(askFirst = true) }
-            )
-        },
-        bottomBar = {
-            if (!WindowInsets.isImeVisible) {
-                NavigationBar(
-                    containerColor = androidx.compose.material3.MaterialTheme.colorScheme.surface,
-                    tonalElevation = 6.dp
-                ) {
-                    NavigationBarItem(
-                        selected = activeTab == 0,
-                        onClick = { viewModel.setActiveTab(0) },
-                        icon = {
-                            Icon(Icons.Default.ChatBubble, contentDescription = "Chat & Care")
-                        },
-                        label = { Text("Chat & Care") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = ChopperPink,
-                            selectedTextColor = ChopperPink,
-                            indicatorColor = ChopperPink.copy(alpha = 0.15f)
-                        ),
-                        modifier = Modifier.testTag("nav_tab_chat")
-                    )
-
-                    NavigationBarItem(
-                        selected = activeTab == 1,
-                        onClick = { viewModel.setActiveTab(1) },
-                        icon = {
-                            BadgedBox(badge = {
-                                if (activeRemindersCount > 0) {
-                                    Badge(containerColor = ChopperPink) {
-                                        Text(activeRemindersCount.toString())
-                                    }
-                                }
-                            }) {
-                                Icon(Icons.Default.CalendarMonth, contentDescription = "Reminders")
-                            }
-                        },
-                        label = { Text("2-Stage Reminders") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = ChopperPink,
-                            selectedTextColor = ChopperPink,
-                            indicatorColor = ChopperPink.copy(alpha = 0.15f)
-                        ),
-                        modifier = Modifier.testTag("nav_tab_reminders")
-                    )
-
-                    NavigationBarItem(
-                        selected = activeTab == 2,
-                        onClick = { viewModel.setActiveTab(2) },
-                        icon = {
-                            BadgedBox(badge = {
-                                if (unhandledNotifsCount > 0) {
-                                    Badge(containerColor = ChopperDoctorBlue) {
-                                        Text(unhandledNotifsCount.toString())
-                                    }
-                                }
-                            }) {
-                                Icon(Icons.Default.Inbox, contentDescription = "Triage Inbox")
-                            }
-                        },
-                        label = { Text("Inbox Triage") },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = ChopperPink,
-                            selectedTextColor = ChopperPink,
-                            indicatorColor = ChopperPink.copy(alpha = 0.15f)
-                        ),
-                        modifier = Modifier.testTag("nav_tab_inbox")
-                    )
-                }
-            }
-        }
+            .testTag("chopper_main_screen")
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(innerPadding)
-                .consumeWindowInsets(innerPadding)
         ) {
-            when (activeTab) {
-                0 -> ChopperChatView(
-                    messages = chatMessages,
-                    isGenerating = isGenerating,
-                    onSendMessage = { viewModel.sendMessage(it) },
-                    onPlayAudio = { viewModel.voiceManager.speak(it, overrideMute = true) },
-                    onStartVoiceCommand = { viewModel.startVoiceCommandFlow(askFirst = true) }
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(top = 8.dp)
+            ) {
+                // Interactive Tony Tony Chopper Character & Expressions Hero Card
+                ChopperCharacterHeroCard(
+                    currentReaction = currentReaction,
+                    isSpeaking = isSpeaking,
+                    isVoiceMuted = isVoiceMuted,
+                    statusText = statusText,
+                    githubVoiceRepoUrl = githubVoiceRepoUrl,
+                    onTriggerReaction = { reaction ->
+                        viewModel.triggerReaction(reaction)
+                    },
+                    onToggleVoiceMute = {
+                        viewModel.voiceManager.toggleMute()
+                    },
+                    onStartVoiceCommand = {
+                        viewModel.startVoiceCommandFlow(askFirst = true)
+                    },
+                    onOpenVoiceSettings = {
+                        showVoiceSettingsDialog = true
+                    },
+                    modifier = Modifier.padding(horizontal = 16.dp)
                 )
-                1 -> ChopperRemindersView(
+
+                Spacer(modifier = Modifier.height(8.dp))
+
+                // Fully Functional Chopper Reminder Engine
+                ChopperRemindersView(
                     reminders = reminders,
                     onAddReminder = { title, targetTime, notes ->
                         viewModel.addReminder(title, targetTime, notes)
+                    },
+                    onQuickAddPreset = { preset ->
+                        viewModel.quickAddReminder(preset)
+                    },
+                    onSnooze = { id, title, minutes ->
+                        viewModel.snoozeReminder(id, title, minutes)
                     },
                     onMarkDone = { id, title ->
                         viewModel.markReminderDone(id, title)
@@ -216,28 +135,39 @@ fun ChopperApp(viewModel: ChopperViewModel) {
                     onDeleteReminder = { id ->
                         viewModel.deleteReminder(id)
                     },
+                    onTriggerAngryScold = {
+                        viewModel.triggerReaction(com.example.voice.ChopperReaction.ANGRY_SCOLD)
+                    },
                     onTestNotification = { type ->
                         viewModel.triggerNotificationTest(type)
-                    }
-                )
-                2 -> ChopperTriageView(
-                    notifications = notifications,
-                    onHandleAction = { notif, action ->
-                        viewModel.handleNotificationAction(notif, action)
                     },
-                    onSimulateIncoming = { type ->
-                        viewModel.simulateIncoming(type)
-                    }
+                    modifier = Modifier.weight(1f)
                 )
             }
 
-            // Chopper Voice Command Dialog (Chopper speaks first, confirms understanding, then accepts voice commands)
+            // Chopper Voice Command Dialog (Hands-free speech commands for reminders)
             ChopperVoiceCommandDialog(
                 state = voiceCommandState,
                 onClose = { viewModel.closeVoiceCommandFlow() },
                 onAcceptCommand = { viewModel.acceptVoiceCommand(it) },
                 onRetryListening = { viewModel.retryListening() }
             )
+
+            // GitHub Voice & Audio Settings Dialog
+            if (showVoiceSettingsDialog) {
+                ChopperVoiceSettingsDialog(
+                    currentRepoUrl = githubVoiceRepoUrl,
+                    onSaveRepoUrl = { url ->
+                        viewModel.setGithubVoiceRepoUrl(url)
+                    },
+                    onTestReaction = { reaction ->
+                        viewModel.triggerReaction(reaction)
+                    },
+                    onDismiss = {
+                        showVoiceSettingsDialog = false
+                    }
+                )
+            }
         }
     }
 }

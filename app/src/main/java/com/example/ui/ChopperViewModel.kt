@@ -33,6 +33,8 @@ class ChopperViewModel(application: Application) : AndroidViewModel(application)
     private val geminiService = GeminiService()
 
     val currentVoiceId: StateFlow<String> = voiceManager.currentVoiceId
+    val currentReaction = voiceManager.currentReaction
+    val githubVoiceRepoUrl = voiceManager.githubVoiceRepoUrl
 
     val reminders: StateFlow<List<ReminderEntity>>
     val notifications: StateFlow<List<TriageNotificationEntity>>
@@ -521,18 +523,102 @@ class ChopperViewModel(application: Application) : AndroidViewModel(application)
         }
     }
 
+    fun triggerReaction(reaction: com.example.voice.ChopperReaction) {
+        voiceManager.triggerReaction(reaction)
+        _chopperStatusText.value = "${reaction.moodLabel} 🌸"
+    }
+
+    fun setGithubVoiceRepoUrl(url: String) {
+        voiceManager.setGithubVoiceRepoUrl(url)
+    }
+
     fun markReminderDone(id: Long, title: String) {
         viewModelScope.launch {
             repository.updateReminderStatus(id, "COMPLETED")
             notificationManager.cancelReminderAlerts(id)
-            val praise = "Awesome job, Boss! '$title' is marked as Done! ✅ That's another great victory for today!"
-            repository.insertChatMessage(
-                ChatMessageEntity(
-                    sender = "CHOPPER",
-                    text = praise
-                )
+            voiceManager.triggerReaction(com.example.voice.ChopperReaction.CHUCKLE_FLUSTERED)
+            _chopperStatusText.value = "Kono yarō! Flattery won't make me happy! Ehehe~ 🌸"
+        }
+    }
+
+    fun snoozeReminder(id: Long, title: String, minutes: Int) {
+        viewModelScope.launch {
+            val newTime = System.currentTimeMillis() + (minutes * 60 * 1000L)
+            repository.rescheduleReminder(id, newTime)
+            notificationManager.cancelReminderAlerts(id)
+            val updated = ReminderEntity(
+                id = id,
+                title = title,
+                targetTimestamp = newTime,
+                remindDayBefore = false,
+                remindDayOf = true
             )
-            voiceManager.speak(praise)
+            notificationManager.scheduleReminderAlerts(updated)
+            val line = "Snoozed '$title' for $minutes minutes! Don't you dare forget next time, baka!"
+            voiceManager.speak(line)
+            _chopperStatusText.value = "Snoozed $minutes mins: $title ⏰"
+        }
+    }
+
+    fun quickAddReminder(presetType: String) {
+        val now = System.currentTimeMillis()
+        val title: String
+        val offsetMs: Long
+        val notes: String
+        val reaction: com.example.voice.ChopperReaction
+
+        when (presetType) {
+            "MEDICINE" -> {
+                title = "Take Medicine & Vitamins 💊"
+                offsetMs = 30 * 60 * 1000L // 30 mins
+                notes = "Doctor Chopper orders: Drink a full glass of water with your medication!"
+                reaction = com.example.voice.ChopperReaction.MEDICINE_ALERT
+            }
+            "WATER" -> {
+                title = "Drink Fresh Water (500ml) 💧"
+                offsetMs = 45 * 60 * 1000L // 45 mins
+                notes = "Stay hydrated! Your brain and muscles need water to stay sharp!"
+                reaction = com.example.voice.ChopperReaction.WATER_ALERT
+            }
+            "REST" -> {
+                title = "Rest Eyes & Take 5min Break 🩺"
+                offsetMs = 25 * 60 * 1000L // 25 mins
+                notes = "Roll your shoulders, look away from screens, and take deep breaths!"
+                reaction = com.example.voice.ChopperReaction.ANGRY_SCOLD
+            }
+            "SLEEP" -> {
+                title = "Bedtime Rest & Sleep 🌙"
+                offsetMs = 2 * 60 * 60 * 1000L // 2 hours
+                notes = "Prescribed 8 hours of peaceful sleep by Doctor Chopper!"
+                reaction = com.example.voice.ChopperReaction.SLEEP_ALERT
+            }
+            "COTTON_CANDY" -> {
+                title = "Cotton Candy / Snack Break 🍭"
+                offsetMs = 15 * 60 * 1000L // 15 mins
+                notes = "You worked hard! Take a sweet reward break, boss!"
+                reaction = com.example.voice.ChopperReaction.COTTON_CANDY
+            }
+            else -> {
+                title = "Doctor Checkup & Vitals 🩺"
+                offsetMs = 60 * 60 * 1000L
+                notes = "Doctor Chopper 2-stage reminder active"
+                reaction = com.example.voice.ChopperReaction.CHUCKLE_FLUSTERED
+            }
+        }
+
+        viewModelScope.launch {
+            val targetTime = now + offsetMs
+            val reminder = ReminderEntity(
+                title = title,
+                targetTimestamp = targetTime,
+                remindDayBefore = false,
+                remindDayOf = true,
+                notes = notes
+            )
+            val insertedId = repository.insertReminder(reminder)
+            notificationManager.scheduleReminderAlerts(reminder.copy(id = insertedId))
+            voiceManager.triggerReaction(reaction)
+            _chopperStatusText.value = "Scheduled: $title 🌸"
         }
     }
 

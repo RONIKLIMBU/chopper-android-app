@@ -1,6 +1,10 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.horizontalScroll
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -70,15 +74,23 @@ import java.util.Locale
 fun ChopperRemindersView(
     reminders: List<ReminderEntity>,
     onAddReminder: (String, Long, String) -> Unit,
+    onQuickAddPreset: (String) -> Unit = {},
+    onSnooze: (Long, String, Int) -> Unit = { _, _, _ -> },
     onMarkDone: (Long, String) -> Unit,
     onReschedule: (Long, String, Long) -> Unit,
     onDeleteReminder: (Long) -> Unit,
+    onTriggerAngryScold: () -> Unit = {},
     onTestNotification: (String) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     var showAddDialog by remember { mutableStateOf(false) }
     var rescheduleTarget by remember { mutableStateOf<ReminderEntity?>(null) }
     var filterIndex by remember { mutableIntStateOf(0) } // 0: Active, 1: Completed, 2: All
+
+    val now = System.currentTimeMillis()
+    val overdueReminders = remember(reminders) {
+        reminders.filter { it.status == "ACTIVE" && it.targetTimestamp < now }
+    }
 
     val filteredReminders = remember(reminders, filterIndex) {
         when (filterIndex) {
@@ -98,21 +110,125 @@ fun ChopperRemindersView(
                 .fillMaxSize()
                 .padding(horizontal = 16.dp)
         ) {
+            // Quick 1-Tap Doctor Presets Row
+            Spacer(modifier = Modifier.height(6.dp))
+            Text(
+                text = "⚡ 1-Tap Doctor Chopper Presets:",
+                fontSize = 11.sp,
+                fontWeight = FontWeight.Bold,
+                color = ChopperDoctorBlue
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .horizontalScroll(rememberScrollState()),
+                horizontalArrangement = Arrangement.spacedBy(6.dp)
+            ) {
+                Button(
+                    onClick = { onQuickAddPreset("MEDICINE") },
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = ChopperPink),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("💊 Medicine (+30m)", fontSize = 11.sp)
+                }
+
+                Button(
+                    onClick = { onQuickAddPreset("WATER") },
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("💧 Water (+45m)", fontSize = 11.sp)
+                }
+
+                Button(
+                    onClick = { onQuickAddPreset("REST") },
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("🩺 Rest Break (+25m)", fontSize = 11.sp)
+                }
+
+                Button(
+                    onClick = { onQuickAddPreset("COTTON_CANDY") },
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFAD1457)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("🍭 Cotton Candy (+15m)", fontSize = 11.sp)
+                }
+
+                Button(
+                    onClick = { onQuickAddPreset("SLEEP") },
+                    contentPadding = PaddingValues(horizontal = 10.dp, vertical = 2.dp),
+                    colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3949AB)),
+                    shape = RoundedCornerShape(10.dp),
+                    modifier = Modifier.height(32.dp)
+                ) {
+                    Text("🌙 Bedtime (+2h)", fontSize = 11.sp)
+                }
+            }
+
+            // Overdue Warning Banner (Chopper gets angry!)
+            if (overdueReminders.isNotEmpty()) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp)
+                        .clickable { onTriggerAngryScold() },
+                    shape = RoundedCornerShape(14.dp),
+                    color = Color(0xFFFFEBEE),
+                    border = BorderStroke(1.dp, Color(0xFFEF9A9A))
+                ) {
+                    Row(
+                        modifier = Modifier.padding(10.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.weight(1f)) {
+                            Text("💢", fontSize = 20.sp)
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Column {
+                                Text(
+                                    text = "Doctor Chopper is Angry! (${overdueReminders.size} overdue)",
+                                    fontSize = 12.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = Color(0xFFC62828)
+                                )
+                                Text(
+                                    text = "Don't ignore your tasks! Tap here for Doctor Chopper's scolding!",
+                                    fontSize = 10.sp,
+                                    color = Color(0xFFB71C1C)
+                                )
+                            }
+                        }
+                        TextButton(onClick = onTriggerAngryScold) {
+                            Text("Listen 📢", fontSize = 11.sp, color = Color(0xFFC62828), fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            }
+
             // Header banner explaining the Two-Stage Reminder Engine & Notification Manager
             Surface(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(vertical = 8.dp),
+                    .padding(vertical = 6.dp),
                 shape = RoundedCornerShape(16.dp),
-                color = ChopperPinkContainer.copy(alpha = 0.6f)
+                color = ChopperPinkContainer.copy(alpha = 0.5f)
             ) {
-                Column(modifier = Modifier.padding(12.dp)) {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
+                Column(modifier = Modifier.padding(10.dp)) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
                         Box(
                             modifier = Modifier
-                                .size(36.dp)
+                                .size(32.dp)
                                 .clip(CircleShape)
                                 .background(ChopperPink),
                             contentAlignment = Alignment.Center
@@ -121,85 +237,45 @@ fun ChopperRemindersView(
                                 imageVector = Icons.Default.NotificationsActive,
                                 contentDescription = null,
                                 tint = Color.White,
-                                modifier = Modifier.size(20.dp)
+                                modifier = Modifier.size(18.dp)
                             )
                         }
 
-                        Spacer(modifier = Modifier.width(10.dp))
+                        Spacer(modifier = Modifier.width(8.dp))
 
                         Column {
                             Text(
-                                text = "Chopper Notification Manager Active 🔔",
+                                text = "Chopper 2-Stage Scheduled Alerts 🔔",
                                 style = MaterialTheme.typography.titleSmall,
                                 fontWeight = FontWeight.Bold,
                                 color = ChopperPink
                             )
                             Text(
-                                text = "Permanent: 7 AM Morning • 2 PM Lunch • 11 PM Night • Drinking Water & Care",
-                                fontSize = 11.sp,
+                                text = "1-Day Before & Day-Of Alarms • Routine Checks",
+                                fontSize = 10.sp,
                                 color = MaterialTheme.colorScheme.onSurfaceVariant
                             )
                         }
                     }
 
-                    Spacer(modifier = Modifier.height(8.dp))
+                    Spacer(modifier = Modifier.height(6.dp))
 
                     // Instant Test Notifications Row
-                    Text("Trigger Built-in Notifications (Instant Test):", fontSize = 10.sp, fontWeight = FontWeight.SemiBold, color = Color.Gray)
-                    Spacer(modifier = Modifier.height(4.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
-                    ) {
-                        Button(
-                            onClick = { onTestNotification("MORNING") },
-                            modifier = Modifier.weight(1f).height(30.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFFE65100))
-                        ) {
-                            Text("7 AM ☀️", fontSize = 10.sp)
-                        }
-                        Button(
-                            onClick = { onTestNotification("LUNCH") },
-                            modifier = Modifier.weight(1f).height(30.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF2E7D32))
-                        ) {
-                            Text("2 PM 🍱", fontSize = 10.sp)
-                        }
-                        Button(
-                            onClick = { onTestNotification("NIGHT") },
-                            modifier = Modifier.weight(1f).height(30.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF3949AB))
-                        ) {
-                            Text("11 PM 🌙", fontSize = 10.sp)
-                        }
-                    }
-                    Spacer(modifier = Modifier.height(4.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.spacedBy(6.dp)
+                        horizontalArrangement = Arrangement.spacedBy(4.dp)
                     ) {
                         Button(
                             onClick = { onTestNotification("WATER") },
-                            modifier = Modifier.weight(1f).height(30.dp),
+                            modifier = Modifier.weight(1f).height(28.dp),
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF0288D1))
                         ) {
                             Text("💧 Water", fontSize = 10.sp)
                         }
                         Button(
-                            onClick = { onTestNotification("CARE") },
-                            modifier = Modifier.weight(1f).height(30.dp),
-                            contentPadding = PaddingValues(0.dp),
-                            colors = ButtonDefaults.buttonColors(containerColor = ChopperPink)
-                        ) {
-                            Text("🩺 Care", fontSize = 10.sp)
-                        }
-                        Button(
                             onClick = { onTestNotification("STAGE_1") },
-                            modifier = Modifier.weight(1f).height(30.dp),
+                            modifier = Modifier.weight(1f).height(28.dp),
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = Color(0xFF7B1FA2))
                         ) {
@@ -207,11 +283,19 @@ fun ChopperRemindersView(
                         }
                         Button(
                             onClick = { onTestNotification("STAGE_2") },
-                            modifier = Modifier.weight(1f).height(30.dp),
+                            modifier = Modifier.weight(1f).height(28.dp),
                             contentPadding = PaddingValues(0.dp),
                             colors = ButtonDefaults.buttonColors(containerColor = ChopperDoctorBlue)
                         ) {
                             Text("Stage 2", fontSize = 10.sp)
+                        }
+                        Button(
+                            onClick = { onTestNotification("CARE") },
+                            modifier = Modifier.weight(1f).height(28.dp),
+                            contentPadding = PaddingValues(0.dp),
+                            colors = ButtonDefaults.buttonColors(containerColor = ChopperPink)
+                        ) {
+                            Text("🩺 Care", fontSize = 10.sp)
                         }
                     }
                 }
@@ -221,7 +305,7 @@ fun ChopperRemindersView(
             SingleChoiceSegmentedButtonRow(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(bottom = 8.dp)
+                    .padding(bottom = 6.dp)
             ) {
                 listOf("Active (${reminders.count { it.status == "ACTIVE" }})", "Completed", "All").forEachIndexed { index, label ->
                     SegmentedButton(
@@ -229,7 +313,7 @@ fun ChopperRemindersView(
                         onClick = { filterIndex = index },
                         shape = SegmentedButtonDefaults.itemShape(index = index, count = 3)
                     ) {
-                        Text(label, fontSize = 12.sp)
+                        Text(label, fontSize = 11.sp)
                     }
                 }
             }
@@ -242,16 +326,17 @@ fun ChopperRemindersView(
                     contentAlignment = Alignment.Center
                 ) {
                     Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        Text("🦌", fontSize = 48.sp)
-                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("🦌", fontSize = 44.sp)
+                        Spacer(modifier = Modifier.height(6.dp))
                         Text(
-                            text = if (filterIndex == 0) "No active reminders right now, Boss!" else "No reminders in this list!",
+                            text = if (filterIndex == 0) "No active reminders, Boss!" else "No reminders in this list!",
                             style = MaterialTheme.typography.bodyMedium,
+                            fontWeight = FontWeight.SemiBold,
                             color = Color.Gray
                         )
                         Text(
-                            text = "Tap the '+' button to schedule an event with 2-stage alerts.",
-                            fontSize = 12.sp,
+                            text = "Tap the '+' button or quick presets above to add one!",
+                            fontSize = 11.sp,
                             color = Color.Gray
                         )
                     }
@@ -259,13 +344,14 @@ fun ChopperRemindersView(
             } else {
                 LazyColumn(
                     modifier = Modifier.weight(1f),
-                    contentPadding = PaddingValues(bottom = 80.dp),
-                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                    contentPadding = PaddingValues(bottom = 84.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     items(filteredReminders, key = { it.id }) { reminder ->
                         ReminderCard(
                             reminder = reminder,
                             onMarkDone = { onMarkDone(reminder.id, reminder.title) },
+                            onSnooze = { minutes -> onSnooze(reminder.id, reminder.title, minutes) },
                             onOpenReschedule = { rescheduleTarget = reminder },
                             onDelete = { onDeleteReminder(reminder.id) }
                         )
@@ -279,7 +365,7 @@ fun ChopperRemindersView(
             onClick = { showAddDialog = true },
             modifier = Modifier
                 .align(Alignment.BottomEnd)
-                .padding(20.dp)
+                .padding(18.dp)
                 .testTag("add_reminder_fab"),
             containerColor = ChopperPink,
             contentColor = Color.White
@@ -316,6 +402,7 @@ fun ChopperRemindersView(
 fun ReminderCard(
     reminder: ReminderEntity,
     onMarkDone: () -> Unit,
+    onSnooze: (Int) -> Unit,
     onOpenReschedule: () -> Unit,
     onDelete: () -> Unit
 ) {
@@ -323,6 +410,7 @@ fun ReminderCard(
         SimpleDateFormat("EEE, MMM dd 'at' h:mm a", Locale.getDefault()).format(Date(reminder.targetTimestamp))
     }
     val isCompleted = reminder.status == "COMPLETED"
+    val isOverdue = !isCompleted && reminder.targetTimestamp < System.currentTimeMillis()
 
     Card(
         modifier = Modifier
@@ -330,35 +418,57 @@ fun ReminderCard(
             .testTag("reminder_card_${reminder.id}"),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (isCompleted) MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f) else MaterialTheme.colorScheme.surface
+            containerColor = when {
+                isCompleted -> MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.4f)
+                isOverdue -> Color(0xFFFFF3F3)
+                else -> MaterialTheme.colorScheme.surface
+            }
         ),
         elevation = CardDefaults.cardElevation(defaultElevation = if (isCompleted) 0.dp else 2.dp)
     ) {
-        Column(modifier = Modifier.padding(14.dp)) {
+        Column(modifier = Modifier.padding(12.dp)) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 verticalAlignment = Alignment.Top,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = reminder.title,
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.Bold,
-                        color = if (isCompleted) Color.Gray else MaterialTheme.colorScheme.onSurface
-                    )
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = reminder.title,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = if (isCompleted) Color.Gray else MaterialTheme.colorScheme.onSurface
+                        )
+                        if (isOverdue) {
+                            Spacer(modifier = Modifier.width(6.dp))
+                            Surface(
+                                shape = RoundedCornerShape(6.dp),
+                                color = Color(0xFFFFCDD2)
+                            ) {
+                                Text(
+                                    text = "OVERDUE 💢",
+                                    fontSize = 9.sp,
+                                    fontWeight = FontWeight.ExtraBold,
+                                    color = Color(0xFFC62828),
+                                    modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                )
+                            }
+                        }
+                    }
+
                     Spacer(modifier = Modifier.height(2.dp))
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Icon(
                             imageVector = Icons.Default.Event,
                             contentDescription = null,
                             tint = if (isCompleted) Color.Gray else ChopperDoctorBlue,
-                            modifier = Modifier.size(14.dp)
+                            modifier = Modifier.size(13.dp)
                         )
                         Spacer(modifier = Modifier.width(4.dp))
                         Text(
                             text = dateFormatted,
-                            fontSize = 12.sp,
+                            fontSize = 11.sp,
                             color = if (isCompleted) Color.Gray else ChopperDoctorBlue,
                             fontWeight = FontWeight.Medium
                         )
@@ -367,89 +477,82 @@ fun ReminderCard(
 
                 IconButton(
                     onClick = onDelete,
-                    modifier = Modifier.size(28.dp)
+                    modifier = Modifier.size(26.dp)
                 ) {
                     Icon(
                         imageVector = Icons.Default.DeleteOutline,
                         contentDescription = "Delete Reminder",
                         tint = Color.Gray,
-                        modifier = Modifier.size(18.dp)
+                        modifier = Modifier.size(16.dp)
                     )
                 }
             }
 
             if (reminder.notes.isNotBlank()) {
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = reminder.notes,
-                    fontSize = 12.sp,
+                    fontSize = 11.sp,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
 
-            Spacer(modifier = Modifier.height(8.dp))
+            Spacer(modifier = Modifier.height(6.dp))
 
-            // 2-Stage alert badges
+            // 2-Stage alert badges & Actions
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(6.dp)
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(ChopperPink.copy(alpha = 0.1f))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Alarm, contentDescription = null, modifier = Modifier.size(12.dp), tint = ChopperPink)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("1 Day Before Alert", fontSize = 10.sp, color = ChopperPink, fontWeight = FontWeight.SemiBold)
+                Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) {
+                    Box(
+                        modifier = Modifier
+                            .clip(RoundedCornerShape(6.dp))
+                            .background(ChopperPink.copy(alpha = 0.1f))
+                            .padding(horizontal = 6.dp, vertical = 2.dp)
+                    ) {
+                        Text("Stage 1 & 2 Alert 🔔", fontSize = 9.sp, color = ChopperPink, fontWeight = FontWeight.SemiBold)
                     }
                 }
 
-                Box(
-                    modifier = Modifier
-                        .clip(RoundedCornerShape(6.dp))
-                        .background(ChopperDoctorBlue.copy(alpha = 0.1f))
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                ) {
-                    Row(verticalAlignment = Alignment.CenterVertically) {
-                        Icon(Icons.Default.Today, contentDescription = null, modifier = Modifier.size(12.dp), tint = ChopperDoctorBlue)
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Day Of Alert", fontSize = 10.sp, color = ChopperDoctorBlue, fontWeight = FontWeight.SemiBold)
-                    }
-                }
-            }
-
-            // Post-event Resolution: Mark Done or Reschedule
-            if (!isCompleted) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
-                    OutlinedButton(
-                        onClick = onOpenReschedule,
-                        modifier = Modifier.height(36.dp)
+                // Actions: Snooze, Reschedule, Mark Done
+                if (!isCompleted) {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Icon(Icons.Default.EditCalendar, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Reschedule", fontSize = 12.sp)
-                    }
+                        // Snooze +15m
+                        TextButton(
+                            onClick = { onSnooze(15) },
+                            modifier = Modifier.height(30.dp),
+                            contentPadding = PaddingValues(horizontal = 6.dp)
+                        ) {
+                            Text("+15m ⏰", fontSize = 10.sp, color = Color(0xFFE65100), fontWeight = FontWeight.Bold)
+                        }
 
-                    Spacer(modifier = Modifier.width(8.dp))
+                        // Reschedule
+                        IconButton(
+                            onClick = onOpenReschedule,
+                            modifier = Modifier.size(30.dp)
+                        ) {
+                            Icon(Icons.Default.EditCalendar, contentDescription = "Reschedule", tint = ChopperDoctorBlue, modifier = Modifier.size(16.dp))
+                        }
 
-                    ElevatedButton(
-                        onClick = onMarkDone,
-                        modifier = Modifier.height(36.dp),
-                        colors = ButtonDefaults.elevatedButtonColors(
-                            containerColor = ChopperPink,
-                            contentColor = Color.White
-                        )
-                    ) {
-                        Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(14.dp))
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text("Mark Done", fontSize = 12.sp, fontWeight = FontWeight.Bold)
+                        // Mark Done
+                        ElevatedButton(
+                            onClick = onMarkDone,
+                            modifier = Modifier.height(32.dp),
+                            contentPadding = PaddingValues(horizontal = 10.dp),
+                            colors = ButtonDefaults.elevatedButtonColors(
+                                containerColor = ChopperPink,
+                                contentColor = Color.White
+                            )
+                        ) {
+                            Icon(Icons.Default.CheckCircle, contentDescription = null, modifier = Modifier.size(12.dp))
+                            Spacer(modifier = Modifier.width(3.dp))
+                            Text("Done 🌸", fontSize = 11.sp, fontWeight = FontWeight.Bold)
+                        }
                     }
                 }
             }

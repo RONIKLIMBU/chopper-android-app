@@ -1,6 +1,6 @@
 {
   "name": "Chopper",
-  "description": "Personal caring AI companion and schedule assistant with caring anime voice, daily check-ins, two-stage reminders, and message triage.",
+  "description": "Tony Tony Chopper reminder app with authentic personality, chuckling dance, angry doctor scolding, voice reactions, and fully functional two-stage schedule alerts.",
   "requestFramePermissions": [],
   "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
 }
